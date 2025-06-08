@@ -1,0 +1,38 @@
+{
+    "name": "jira-mcp",
+    "version": "1.0.0",
+    "main": "build/index.js",
+    "type": "module",
+    "bin": {
+        "jira-mcp": "./build/index.js"
+    },
+    "scripts": {
+        "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+        "start": "node ./build/index.js"
+    },
+    "files": [
+        "build"
+    ],
+    "keywords": [
+        "mcp",
+        "jira",
+        "cursor"
+    ],
+    "author": "",
+    "license": "ISC",
+    "description": "Jira MCP tool for reading issue descriptions and comments",
+    "devDependencies": {
+        "@types/jira-client": "^7.1.8",
+        "@types/node": "^22.10.0",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.7.2",
+        "zod": "^3.25.56"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.4.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.5.0",
+        "express": "^5.1.0",
+        "jira-client": "^8.2.2"
+    }
+}

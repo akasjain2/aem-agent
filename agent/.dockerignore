@@ -1,0 +1,23 @@
+# Ignore Python cache and bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.log
+
+# Ignore your local virtual environment
+venv/
+
+# Ignore OS or editor artifacts
+.DS_Store
+.env
+*.swp
+
+# Ignore git files (if accidentally copied)
+.git/
+.gitignore
+
+# Ignore model cache (optional)
+~/.cache/
+.cache/

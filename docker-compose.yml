@@ -1,0 +1,23 @@
+version: "3.8"
+services:
+  agent:
+    build: ./agent
+    ports:
+      - "8000:8000"
+    depends_on:
+      - jira-mcp
+      - splunk-mcp
+
+  jira-mcp:
+    build: ./jira-mcp
+    ports:
+      - "5001:5001"
+    environment:
+      - JIRA_HOST=jira.corp.adobe.com
+      - JIRA_USERNAME=your-username
+      - JIRA_PASSWORD=your-password
+
+  splunk-mcp:
+    build: ./splunk-mcp
+    ports:
+      - "5002:5002"

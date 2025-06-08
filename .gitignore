@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.env
+.idea
+*.iml
+
+# HuggingFace cache
+~/.cache/huggingface
+
+# JIRA-MCP
+jira-mcp/node_modules/*
+jira-mcp/build/*
+jira-mcp/package-lock.json
