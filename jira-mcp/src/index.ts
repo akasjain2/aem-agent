@@ -45,6 +45,7 @@ function validateJiraConfig() {
 // Route: Get issue description
 app.get("/jira/:issueId/description", async (req, res) => {
   const issueKey = req.params.issueId;
+  console.log('Got description request for issueKey:', issueKey);
   const configError = validateJiraConfig();
   if (configError) return res.status(500).json({ error: configError });
 
@@ -56,7 +57,7 @@ app.get("/jira/:issueId/description", async (req, res) => {
     const summary = issue.fields.summary || "No summary";
     const status = issue.fields.status?.name || "Unknown";
     const issueType = issue.fields.issuetype?.name || "Unknown";
-
+    console.log('Response sending for description request for issueKey:', issueKey);
     return res.json({
       issueKey,
       summary,
@@ -73,6 +74,7 @@ app.get("/jira/:issueId/description", async (req, res) => {
 // Route: Get issue comments
 app.get("/jira/:issueId/comments", async (req, res) => {
   const issueKey = req.params.issueId;
+  console.log('Got comments request for issueKey:', issueKey);
   const configError = validateJiraConfig();
   if (configError) return res.status(500).json({ error: configError });
 
@@ -86,7 +88,7 @@ app.get("/jira/:issueId/comments", async (req, res) => {
       created: c.created,
       body: c.body || "",
     }));
-
+    console.log('Response sending for comments request for issueKey:', issueKey);
     return res.json({ comments: formatted });
   } catch (err) {
     console.error("Jira comments error:", err);
