@@ -63,10 +63,21 @@ def process_jira_with_llm_node(state):
     )
 
     url_list = llm.invoke(prompt)
-    # Try to parse the LLM output as a Python list
-    print("LLM output for URLs:", url_list)
+    # After LLM invocation
+    llm_output = url_list
+    if isinstance(llm_output, dict) and "content" in llm_output:
+        llm_output = llm_output["content"]
+    elif hasattr(llm_output, "content"):
+        llm_output = llm_output.content
+
+    # Remove code block markers if present
+    if llm_output.strip().startswith("```"):
+        llm_output = llm_output.strip().strip("`")
+        # Remove 'python' if present
+        if llm_output.startswith("python"):
+            llm_output = llm_output[len("python"):].strip()
     try:
-        urls = eval(url_list) if isinstance(url_list, str) else url_list
+        urls = eval(llm_output) if isinstance(llm_output, str) else llm_output
     except Exception:
         urls = []
     # Regex fallback if LLM fails
@@ -88,9 +99,10 @@ def process_jira_with_llm_node(state):
         try:
             resp = requests.get(url, timeout=5)
             if resp.status_code == 200:
+                print("Valid URL found:", url)
                 data = resp.json()
                 action_id = data.get("actionId", "")
-                if action_id == "install-service-pack":
+                if action_id == "install-service-pack" or action_id == "install-client-packages":
                     entity_id = data.get("entityId", "")
                     # Extract the part like 'author1useast1-28434635' from entityId
                     match = re.search(r"<RESOURCE::[a-z0-9]+::([a-z0-9\-]+)>", entity_id)
@@ -98,8 +110,9 @@ def process_jira_with_llm_node(state):
                     # Fetch topology name from stripped URL
                     topology = None
                     if extracted_entity and match:
+                        print("Extracted entity:", extracted_entity)
                         # Compose the topology URL using the full matched string
-                        topology_url = f"https://bb.ams.adobe.net/cxf/bigbear/api/v0.1.0/topologies/{match.group(0)}"
+                        topology_url = "/".join(url.split("/")[:-3]) + "/"
                         try:
                             topology_resp = requests.get(topology_url, timeout=5)
                             if topology_resp.status_code == 200:
@@ -107,13 +120,23 @@ def process_jira_with_llm_node(state):
                                 topology = topology_json.get("name")
                         except Exception:
                             pass
+
+                    tail_url = url + "/tail"
+                    tail_resp = requests.get(tail_url, timeout=5)
+                    if tail_resp.status_code == 200:
+                        bb_logs = tail_resp.text
+                        print("Fetched tail content:")
+                    else:
+                        tail_content = None
+
                     return {
                         "invocationTime": data.get("invocationTime"),
                         "completionTime": data.get("completionTime"),
                         "actionId": action_id,
                         "entityId": entity_id,
                         "instanceId": extracted_entity,
-                        "topology": topology
+                        "topology": topology,
+                        "bbLogs": bb_logs
                         # Pass along previous state
 
                     }
