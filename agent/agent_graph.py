@@ -21,6 +21,7 @@ class AgentState(TypedDict, total=False):
     entityId : str
     instanceId : str
     topology: str
+    bigBearLogs: str
 
 
 def get_jira_node(state):
@@ -34,19 +35,35 @@ def get_jira_node(state):
         "comments": [comment["body"] for comment in jira_comm.get("comments", [])],
         "failure_time": "2024-06-01T10:23:00"  # static until Splunk timestamp added
     }
-    print("Output state in get_jira_node:", result)
     return result
 
 def get_splunk_node(state):
     # print entire state
-    print("Current state in get_splunk_node:", state)
+    #print("Current state in get_splunk_node:", state)
     logs = run_splunk_query(state["summary"], state["failure_time"])
     return {"logs": logs}
 
 def analyze_logs_node(state):
-    prompt = f"Analyze the AEM log and explain failure:\n{state['logs']}"
+    logs = state['bigBearLogs']
+
+    prompt = ("You are an AEM log analyzer." 
+              "BigBear is a service that orchestrates AEM client package installation." 
+              "Analyze the BigBear log and explain reason of failure in 10 to 20 lines:\n\n"
+              f"{logs}"
+              )
+
     result = llm.invoke(prompt)
-    return {"diagnosis": result}
+
+    # After LLM invocation
+    llm_output = result
+    if isinstance(llm_output, dict) and "content" in llm_output:
+        llm_output = llm_output["content"]
+    elif hasattr(llm_output, "content"):
+        llm_output = llm_output.content
+
+    print("LLM output in analyze_logs_node:", llm_output)
+
+    return {"diagnosis": llm_output}
 
 def process_jira_with_llm_node(state):
     print("Current state in process_jira_with_llm_node:", state)
@@ -136,7 +153,7 @@ def process_jira_with_llm_node(state):
                         "entityId": entity_id,
                         "instanceId": extracted_entity,
                         "topology": topology,
-                        "bbLogs": bb_logs
+                        "bigBearLogs": bb_logs
                         # Pass along previous state
 
                     }
