@@ -1,7 +1,9 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from langchain_community.llms import HuggingFacePipeline
 
-MODEL_NAME = "NousResearch/Nous-Hermes-2-Mistral-7B-DPO"
+#MODEL_NAME = "NousResearch/Nous-Hermes-2-Mistral-7B-DPO"
+MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.1"
+
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=False)  # 👈 Force slow tokenizer
 

@@ -50,25 +50,34 @@ def analyze_logs_node(state):
 
 def process_jira_with_llm_node(state):
     print("Current state in process_jira_with_llm_node:", state)
-    summary = state["summary"]
+    description = state["description"]
+    comments = state["comments"]
+    summary = description + "\n" + "\n".join(comments)
     # LLM prompt to extract BigBear URLs
     prompt = (
-        "Extract all URLs from the following text that match any of these domains: "
+        "You will be given text. Extract ONLY the valid URLs that match these domains: "
         "bb.ams.adobe.net, bigbear-enterprise.ent.ams-cloud.net, bigbear-prod.adobems.cn:8443. "
-        "Return only the URLs as a Python list.\n" + summary
+        "Return a **valid Python list**, and nothing else.\n\n"
+        "Text:\n"
+        f"{summary}"
     )
+
     url_list = llm.invoke(prompt)
     # Try to parse the LLM output as a Python list
+    print("LLM output for URLs:", url_list)
     try:
         urls = eval(url_list) if isinstance(url_list, str) else url_list
     except Exception:
         urls = []
     # Regex fallback if LLM fails
     if not urls:
+        print("No URLs found by LLM")
         pattern = r"https?://(?:bb\\.ams\\.adobe\\.net|bigbear-enterprise\\.ent\\.ams-cloud\\.net|bigbear-prod\\.adobems\\.cn:8443)[^\s'\"]+"
         urls = re.findall(pattern, summary)
+        print("URLs built manually:", urls)
     # If still no URLs, exit the chain with an error state
     if not urls:
+        print("No URL could be built")
         return {**state, "error": "No BigBear URLs found in summary. Exiting chain."}
     # Try each URL
     for url in urls:
